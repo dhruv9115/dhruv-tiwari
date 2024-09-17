@@ -1,19 +1,10 @@
 # main links
 main:
-  - title: "Overview"
-    url: /overview/
-  - title: "Architecture"
-    url: /architecture/
-  - title: "AWS EKS Setup"
-    url: /eks-setup/
-  - title: "Route 53 Routing"
-    url: /route53-routing/
-  - title: "CI/CD Pipeline"
-    url: /ci-cd/
-  - title: "Monitoring"
-    url: /monitoring/
-  - title: "Summary"
-    url: /summary/
+  - title: "Home"
+    url: /
+  - title: "Blogs"
+    url: /blogs/
+
 
   # - title: "About"
   #   url: https://mmistakes.github.io/minimal-mistakes/about/
