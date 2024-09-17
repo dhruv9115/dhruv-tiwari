@@ -7,3 +7,15 @@ search: false
 
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials
+/* Add spacing to headings */
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 1.5rem; /* Adds space above the heading */
+    margin-bottom: 1rem; /* Adds space below the heading */
+    padding-left: 20px; /* Adds space on the left side */
+    padding-right: 20px; /* Adds space on the right side */
+}
+
+/* Add padding to the entire content */
+.post-content {
+    padding: 20px; /* Adds space around the content */
+}
