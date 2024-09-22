@@ -1,5 +1,5 @@
 ---
-layout: post
+# layout: post
 title: "Multi-Region EKS Setup"
 date: 2024-09-17
 categories: [Blog]
