@@ -17,7 +17,7 @@ The objective of this article is to create an architecture with the following ob
 ## Architecture
 
 <p align="center">
-  <img src="{{ '/assets/images/architecture_overview.jpeg' | relative_url }}" alt="Architecture Diagram" style="width: 80%; max-width: 800px; border: 1px solid #ccc;">
+  <img src="{{ '/assets/images/architecture_overview.jpeg' | relative_url }}" alt="Architecture Diagram">
 </p>
 
 ## IAC - Terraform with CloudPosse Atmos
@@ -156,14 +156,14 @@ The objective of this article is to create an architecture with the following ob
 
 11. **Now it should be visible from `atmos` CLI**
     <p align="center">
-      <img src="{{ '/assets/images/atmos-cli.png' | relative_url }}" alt="Example" style="width: 80%; max-width: 800px; border: 1px solid #ccc;">
+      <img src="{{ '/assets/images/atmos-cli.png' | relative_url }}" alt="Example">
     </p>
 
 12. **Run the plan for each region, for this example `us-east-1` and `us-west-1`**
 
 13. **For apply, I would recommend using GitHub Actions**
     <p align="center">
-      <img src="{{ '/assets/images/githubaction-run.png' | relative_url }}" alt="GitHub Actions run" style="width: 80%; max-width: 800px; border: 1px solid #ccc;">
+      <img src="{{ '/assets/images/githubaction-run.png' | relative_url }}" alt="GitHub Actions run">
     </p>
 
     A sample workflow:
@@ -189,12 +189,97 @@ The objective of this article is to create an architecture with the following ob
 ## EKS Cluster Architecture
 
 <p align="center">
-  <img src="{{ '/assets/images/eks_arch.jpeg' | relative_url }}" alt="EKS Cluster Architecture" style="width: 80%; max-width: 800px; border: 1px solid #ccc;">
+  <img src="{{ '/assets/images/eks_arch.jpeg' | relative_url }}" alt="EKS Cluster Architecture">
 </p>
+
+### 1. Overall Architecture
+- This architecture diagram represents a highly available and fault-tolerant AWS environment for running **Kubernetes nodes using Amazon EKS (Elastic Kubernetes Service)**.
+- The architecture spans **three Availability Zones (AZs)** to ensure resilience and redundancy in case of failure.
+
+### 2. VPC Configuration
+- The infrastructure operates inside a **Virtual Private Cloud (VPC)** with a CIDR block of **10.88.0.0/16**.
+- The VPC is divided into **public subnets** and **private subnets** across three availability zones (AZ A, AZ B, and AZ C).
+
+### 3. Public Subnets
+- Each availability zone contains a **Public Subnet**:
+  - AZ A: **10.88.1.0/24**
+  - AZ B: **10.88.2.0/24**
+  - AZ C: **10.88.3.0/24**
+- Resources hosted in these public subnets include:
+  - **NAT Gateways**: Used to allow instances in private subnets to securely access the internet without exposing them directly.
+  - **Bastion Hosts**: Provide secure SSH access to instances in private subnets, accessible only via trusted IP addresses.
+  - **External ALB**: Routes traffic from the internet to services hosted in private subnets.
+
+### 4. Private Subnets
+- Each availability zone contains **Private Subnets**:
+  - AZ A: **10.88.11.0/24**
+  - AZ B: **10.88.12.0/24**
+  - AZ C: **10.88.13.0/24**
+- These private subnets host resources such as:
+  - **Amazon EKS Worker Nodes**: Containers running Kubernetes workloads.
+  - **Internal ALB**: Facilitates routing between internal services.
+  - **Auto Scaling Group**: Automatically manages the scaling of EKS worker nodes.
+
+### 5. Elastic Load Balancer (ALB)
+- Two types of load balancers are used in this architecture:
+  - **External ALB**: Exposed to the internet via the **Internet Gateway (IGW)**, it distributes incoming traffic across EKS worker nodes in private subnets.
+  - **Internal ALB**: Resides in the **private subnets** and routes traffic between internal services and EKS worker nodes. It is not exposed to the internet.
+
+### 6. Internet Gateway (IGW)
+- The **Internet Gateway (IGW)** allows public subnets to communicate with the internet, providing inbound and outbound internet access for the external ALB, NAT gateways, and bastion hosts.
+
+### 7. NAT Gateway
+- **NAT Gateways** are deployed in each **public subnet** to provide **outbound internet access** for instances in private subnets.
+- EKS nodes in private subnets can connect to the internet to pull Docker images or access other external resources without being directly exposed.
+
+### 8. VPC Endpoints for S3 and DynamoDB (Optional)
+- **VPC Gateway Endpoints** allow instances in private subnets to securely access **Amazon S3** and **Amazon DynamoDB** without going through the internet or NAT Gateway, improving security and reducing costs.
+  - **S3 Endpoint**: Enables internal access to S3 buckets for object storage.
+  - **DynamoDB Endpoint**: Enables direct access to DynamoDB tables from private subnets.
+
+### 9. Stateful Resources (Amazon S3 and DynamoDB)
+- **Amazon S3**:
+  - Provides scalable, durable, and highly available **object storage**. S3 buckets can be accessed from the private subnets via **VPC Gateway Endpoints**.
+  - **Cross-Region Replication (CRR)** is enabled for disaster recovery, replicating data to a different AWS region.
+  
+- **Amazon DynamoDB**:
+  - A fully managed, highly available **NoSQL database**. DynamoDB tables can be accessed from private subnets through **DynamoDB VPC Gateway Endpoints**.
+  - **Global Tables** are enabled to provide multi-region replication, ensuring low-latency access and high availability across different regions.
+
+### 10. Security Considerations
+- **Bastion Hosts**: Only accessible through sessions manager
+- **Security Groups**: Applied to EKS nodes, ALBs, and NAT gateways to control both inbound and outbound traffic based on the principle of least privilege.
+- **VPC Endpoints**: Improve security by enabling private access to S3 and DynamoDB without using the public internet.
+
+### 11. Traffic Flow:
+- **External Traffic** (Public):
+  - **Internet -> IGW -> External ALB -> EKS Nodes (Private Subnets)**.
+
+- **Internal Traffic** (Private):
+  - **Internal Service -> Internal ALB -> EKS Nodes (Private Subnets)**.
+
+- **Outbound Internet Traffic** (from Private Subnets):
+  - **EKS Nodes (Private Subnets) -> NAT Gateway -> Internet**.
+
+- **S3 and DynamoDB Access** (via VPC Endpoints):
+  - **EKS Nodes (Private Subnets) -> VPC Gateway Endpoints -> S3/DynamoDB**.
+
+### 12. Route Tables
+- **Public Subnets**: Route to **Internet Gateway (IGW)** for public-facing traffic.
+- **Private Subnets**: Route through **NAT Gateway** for outbound internet access.
+- **VPC Endpoints**: Optional entries for direct access to **S3** and **DynamoDB** without NAT Gateway.
+
+### 13. High Availability and Fault Tolerance
+- The architecture is spread across **three Availability Zones (AZs)** to ensure high availability.
+- Critical services like **NAT Gateways**, **ALBs**, and **EKS worker nodes** are distributed across all AZs to prevent single points of failure.
+- **Auto Scaling** ensures that the number of worker nodes scales based on demand.
+
+
 
 ## Blue-Green Deployment with ArgoCD
 
 Assuming that argocd has already been deployed to eks, either through manifests or through terraform
+
 **Steps**
 1. **Create Two Environments:** Deploy two versions of the application (blue and green) using separate namespaces or ArgoCD Applications.
 2. **Deploy the Green Environment:** Deploy the new version (green) without affecting the blue version.
@@ -204,14 +289,14 @@ Assuming that argocd has already been deployed to eks, either through manifests 
 
 ## Cost and Cost Optimization
 
-### Costs Involved:
+### Costs Involved
 1. **EKS Clusters:** Charged for the control plane and worker nodes (EC2 instances).
 2. **Load Balancers:** Costs for handling incoming traffic.
 3. **Route 53:** Charged for DNS queries and health checks.
 4. **S3, DynamoDB:** Storage costs for state files (if using Terraform backend).
 5. **NAT Gateways:** Charged by data processing and usage.
 
-### Cost Optimization Strategies:
+### Cost Optimization Strategies
 1. **Spot Instances:** Use spot instances for worker nodes to save up to 90% of EC2 costs.
 2. **Auto Scaling:** Ensure efficient scaling of EKS worker nodes based on traffic.
 3. **Rightsize Resources:** Optimize instance types and sizes for both nodes and bastion hosts.
