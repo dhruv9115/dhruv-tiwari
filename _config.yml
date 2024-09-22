@@ -327,4 +327,4 @@ defaults:
       toc_label: "Sections"
       toc_icon: "align-left" # optional, requires font-awesome
       toc_sticky: true
-      toc_levels: 2..6
+      toc_levels: 1..6

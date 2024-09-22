@@ -4,9 +4,6 @@ title: "Multi-Region EKS Setup"
 date: 2024-09-17
 categories: [Blog]
 tags: [EKS, Multi-Region, Kubernetes]
-toc: true
-toc_label: "Sections"
-toc_sticky: true
 ---
 
 ## Overview
@@ -25,7 +22,7 @@ The objective of this article is to create an architecture with the following ob
 
 ## IAC - Terraform with CloudPosse Atmos
 
-#### How It Works
+### How It Works
 
 1. **Create an EKS Component**: This component will contain the Terraform module for EKS. For this example, we’ll use `terraform-aws-modules/eks/aws`.
 
