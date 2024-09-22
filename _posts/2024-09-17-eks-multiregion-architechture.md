@@ -2,11 +2,11 @@
 layout: post
 title: "Multi-Region EKS Setup"
 date: 2024-09-17
-toc: true
-# toc_label: "Sections"
-# toc_sticky: true
 categories: [Blog]
 tags: [EKS, Multi-Region, Kubernetes]
+toc: true
+toc_label: "Sections"
+toc_sticky: true
 ---
 
 ## Overview
