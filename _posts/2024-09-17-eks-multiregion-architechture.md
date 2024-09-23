@@ -22,9 +22,9 @@ The objective of this article is to create an architecture with the following ob
 
 ### How It Works
 
-1. **Create an EKS Component**: This component will contain the Terraform module for EKS. For this example, we’ll use `terraform-aws-modules/eks/aws`.
+#### 1. **Create an EKS Component**: This component will contain the Terraform module for EKS. For this example, we’ll use `terraform-aws-modules/eks/aws`.
 
-2. **Create `main.tf` with Parameters**:
+#### 2. **Create `main.tf` with Parameters**:
    - Create the file in the directory `components/terraform/eks`.
    - Define the EKS module:
 
@@ -40,7 +40,7 @@ The objective of this article is to create an architecture with the following ob
    }
    {% endhighlight %}
 
-3. **Create `bastion.tf` to create bastion hosts to access the cluster**
+#### 3. **Create `bastion.tf` to create bastion hosts to access the cluster**
    {% highlight hcl %}
    module "ec2_bastion" {
     for_each = local.public_subnet_ids
@@ -60,7 +60,7 @@ The objective of this article is to create an architecture with the following ob
    }
    {% endhighlight %}
 
-4. **Create `remote-state.tf` to import the VPC deployed through the VPC component**
+#### 4. **Create `remote-state.tf` to import the VPC deployed through the VPC component**
    {% highlight hcl %}
    module "vpc" {
        source = "cloudposse/stack-config/yaml//modules/remote-state"
@@ -71,11 +71,11 @@ The objective of this article is to create an architecture with the following ob
    }
    {% endhighlight %}
 
-5. **Create `variables.tf`, `outputs.tf` according to the Terraform modules**
+#### 5. **Create `variables.tf`, `outputs.tf` according to the Terraform modules**
 
-6. **Create a directory `stacks/catalog/eks` (catalog calls all the AWS service components)**
+#### 6. **Create a directory `stacks/catalog/eks` (catalog calls all the AWS service components)**
 
-7. **Create a `defaults.yaml` inside the above directory, and call default values for the EKS service**
+#### 7. **Create a `defaults.yaml` inside the above directory, and call default values for the EKS service**
    {% highlight yaml %}
    components:
      terraform:
@@ -123,7 +123,7 @@ The objective of this article is to create an architecture with the following ob
            associate_public_ip_address: true
    {% endhighlight %}
 
-8. **Create `<env>.yaml`, for example, `qa.yaml`, which creates the EKS cluster, with on-demand, spot, and Fargate nodes, with proper taints:**
+#### 8. **Create `<env>.yaml`, for example, `qa.yaml`, which creates the EKS cluster, with on-demand, spot, and Fargate nodes, with proper taints:**
    {% highlight yaml %}
    import:
      - catalog/eks/defaults
@@ -138,28 +138,28 @@ The objective of this article is to create an architecture with the following ob
            cluster_name: "qa-cluster"
    {% endhighlight %}
 
-9. **Create `stacks/mixins/region/us-east-1.yaml` and `stacks/mixins/region/us-west-1.yaml` and declare default values for the region, for example:**
+#### 9. **Create `stacks/mixins/region/us-east-1.yaml` and `stacks/mixins/region/us-west-1.yaml` and declare default values for the region, for example:**
    {% highlight yaml %}
    vars:
      region: us-east-1
      environment: ue1
    {% endhighlight %}
 
-10. **Create `stacks/orgs/<your_org_name>/<bu>/qa/us-east-1.yaml` and `stacks/orgs/<your_org_name>/<bu>/qa/us-west-1.yaml**
+#### 10. **Create `stacks/orgs/<your_org_name>/<bu>/qa/us-east-1.yaml` and `stacks/orgs/<your_org_name>/<bu>/qa/us-west-1.yaml**
     {% highlight yaml %}
     import:
     - catalog/vpc/qa
     - catalog/eks/qa
     {% endhighlight %}
 
-11. **Now it should be visible from `atmos` CLI**
+#### 11. **Now it should be visible from `atmos` CLI**
     <p align="center">
       <img src="{{ '/assets/images/atmos-cli.png' | relative_url }}" alt="Example">
     </p>
 
-12. **Run the plan for each region, for this example `us-east-1` and `us-west-1`**
+#### 12. **Run the plan for each region, for this example `us-east-1` and `us-west-1`**
 
-13. **For apply, I would recommend using GitHub Actions**
+#### 13. **For apply, I would recommend using GitHub Actions**
     <p align="center">
       <img src="{{ '/assets/images/githubaction-run.png' | relative_url }}" alt="GitHub Actions run">
     </p>
