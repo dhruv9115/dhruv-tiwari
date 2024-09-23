@@ -285,6 +285,46 @@ Assuming that argocd has already been deployed to eks, either through manifests 
 4. **Test the Green Version:** Ensure that the new (green) version is working correctly before fully switching traffic.
 5. **Rollback to Blue if Needed:** If the green environment has issues, rollback by switching traffic back to the blue environment.
 
+
+## Monitoring and Observability
+
+### Monitoring Tools:
+- **Amazon CloudWatch:** Use CloudWatch to monitor EKS cluster metrics, such as CPU/Memory usage, and set up alerts based on thresholds.
+   {% highlight hcl %}
+   module "eks_cluster" {
+     source  = "terraform-aws-modules/eks/aws"
+     version = "~> 19.0"
+     
+     # Cluster log configuration
+     cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+     # ……
+   }
+   {% endhighlight %}
+
+- **Prometheus and Grafana:** Install Prometheus in the EKS cluster to collect metrics from Kubernetes resources and applications.
+   {% highlight hcl %}
+    module "prometheus" {
+      source  = "terraform-aws-modules/managed-service-prometheus/aws"
+      version = "v3.0.0"
+
+      workspace_alisas = "qa"
+    }
+   {% endhighlight %}
+      {% highlight hcl %}
+    module "grafana" {
+      source  = "terraform-aws-modules/managed-service-grafana/aws"
+      version = "v2.2.0"
+
+      name   = var.name
+      region = var.region
+
+      permission_type  = "SERVICE_MANAGED"
+      notification_destinations = ["SNS"]
+
+      data_sources = ["CLOUDWATCH", "PROMETHEUS"]
+    }
+
+   {% endhighlight %}
 ## Cost and Cost Optimization
 
 ### Costs Involved
